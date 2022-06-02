@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-alinda-dev-192256-authRole",
+      "UnauthRoleArn": "arn:aws:iam::094106269614:role/amplify-alinda-dev-192256-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::094106269614:role/amplify-alinda-dev-192256-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-alinda-dev-192256-deployment",
+      "UnauthRoleName": "amplify-alinda-dev-192256-unauthRole",
+      "StackName": "amplify-alinda-dev-192256",
+      "StackId": "arn:aws:cloudformation:us-east-1:094106269614:stack/amplify-alinda-dev-192256/33ec1b70-e080-11ec-9861-12c8b37308cb",
+      "AmplifyAppId": "d1e95qsnkvt2yh"
+    },
+    "categories": {
+      "auth": {
+        "alindae87c3c73": {}
+      }
+    }
+  }
+}

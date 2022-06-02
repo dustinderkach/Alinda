@@ -1,0 +1,36 @@
+# This "input" configures a global authorization rule to enable public access to
+# all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
+input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
+
+enum ModelSortDirection {
+ASC
+DESC
+}
+ 
+enum KeyNames {
+  USER
+  SHARE
+  BUY
+}
+
+
+type Alinda @model {
+ 
+  T_PK: String! @primaryKey(sortKeyFields: ["T_SK"])
+  T_SK: String!
+  X1_PK: String @index(name: "GSI_1", sortKeyFields: ["X1_SK"], queryField: "qGSI_1")
+  X2_PK: String @index(name: "GSI_2", sortKeyFields: ["X2_SK"], queryField: "qGSI_2")
+  X3_PK: String @index(name: "GSI_3", sortKeyFields: ["X3_SK"], queryField: "qGSI_3")
+  X4_PK: String @index(name: "GSI_4", sortKeyFields: ["X4_SK"], queryField: "qGSI_4")
+  X1_SK: String
+  X2_SK: String
+  X3_SK: String
+  X4_SK: String
+  date_first_login: AWSDateTime
+  date_last_login: AWSDateTime
+  isAdmin: Boolean
+  number_of_logins: Int
+  userEmail: String
+  userName: String
+ 
+}
