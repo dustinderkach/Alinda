@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {  Link} from 'react-router-dom';
-import {Auth, Hub} from 'aws-amplify'
 
+import  {Amplify, API, graphqlOperation, Hub } from 'aws-amplify'
+import { createAlinda } from '../graphql/mutations'
+import { listAlindas } from '../graphql/queries'
 
 import awsExports from "../aws-exports";
 import { Authenticator } from '@aws-amplify/ui-react';
-import {Amplify} from 'aws-amplify'
+
 
 
 // https://www.sufle.io/blog/aws-amplify-authentication-part-2
@@ -20,144 +22,132 @@ Amplify.configure(awsExports);
 // NavBtnLink,
 // } from './NavbarElements';
 
-const initialState = { Username: '', phone_number: '', email: '', userEmail: '' }
+const initialState = { T_PK: '', T_SK: '', userName: '', userEmail: '',  isAdmin: false }
+let alinda = { T_PK: '', T_SK: '', userName: '', userEmail: '',  isAdmin: false }
+let isAdmin = false;
+let userName = "";
+let userEmail = "";
+
 
 const Navbar = () => {
 
-	const [userGroups, setUserGroups] = useState(null);
 
 	const [user, setUser] = useState(null);
+	const [userState, setFormState] = useState(initialState)
+	const [alindas, setAlindas] = useState([])
 
 
+	function setInput(key, value) {
+		setFormState({ ...userState, [key]: value })
+	  }
+	
+	  async function fetchAlindas() {
+		try {
+		  const alindaData = await API.graphql(graphqlOperation(listAlindas))
+		  const alindas = alindaData.data.listAlindas.items
+		  setAlindas(alindas)
+		} catch (err) { console.log('error fetching alindas') }
+	  }
+	
+	
+	  async function addAlinda() {
+		try {
+		 // if (!userState.T_PK || !userState.T_SK) return
+	if(alinda && alinda.T_PK && alinda.T_SK) {
+		//   setInput('userName', userState.T_SK)
+		//   userState.userName = userState.T_SK;
+		 // const alinda = { ...userState }
+		  alert("stri: " + JSON.stringify(alinda));
+		//   setAlindas([...alindas, alinda])
+		//   setFormState(initialState)
+	
+		//   alert(JSON.stringify(alinda));
+	
+		  await API.graphql(graphqlOperation(createAlinda, {input: alinda}))
+	}
+		} catch (err) {
+		  console.log('error creating alinda:', err)
+		}
+	  }
 
+	//   {
+    //     alindas.map((alinda, index) => (
+    //       <div key={alinda.T_SK ? alinda.T_SK : index} style={styles.todo}>
+    //         <p style={styles.todoName}>{alinda.T_PK}</p>
+    //         <p style={styles.todoDescription}>{alinda.T_SK}</p>
+    //       </div>
+    //     ))
+    //   }
+	
 
+  
 	useEffect(() => {
-	  Hub.listen('auth', ({ payload: { event, data } }) => {
+	  const unsubscribe = Hub.listen("auth", ({ payload: { event, data } }) => {
 		switch (event) {
-		  case 'signIn':
+		  case "signIn":
+			setUser(data);
+
 			if(data){
-                var cog = JSON.parse( JSON.stringify(data));
-                const groups = cog.signInUserSession.accessToken.payload["cognito:groups"];
+			  var cognitoObj = JSON.parse( JSON.stringify(data));
 
-                var isAdmin = false;
 
-                if(cog.signInUserSession.accessToken.payload["cognito:groups"].filter(x => x === 'Admins')){
-                  isAdmin = true;
-                }
+			  setInput('T_PK', "USER");
+			  alinda.T_PK = "USER";
 
-                alert("NAV: is admin: " + isAdmin)
-              }
+			  if(cognitoObj.username){
+				userName = cognitoObj.username;
+				setInput('T_SK', "USER#" + cognitoObj.username);
+				setInput('userName', "USER#" + cognitoObj.username);
+				
+				alinda.T_SK = "USER#" + cognitoObj.username;
+				alinda.userName = userName;
+				  alert("alinda.T_SK: " + alinda.T_SK)
+			  }
 
-		  case 'signOut':
+
+
+			  if(cognitoObj.signInUserSession.accessToken.payload["cognito:groups"].filter(x => x === 'Admins')){
+				isAdmin = true;
+				setInput('isAdmin', true);
+				alinda.isAdmin = true;
+				alert("NAV: is admin: " + isAdmin)
+			  }
+
+
+			  //const groups = cognitoObj.signInUserSession.accessToken.payload["cognito:groups"];
+
+			  if(cognitoObj.attributes.email){
+				userEmail = cognitoObj.attributes.email;
+				setInput('userEmail', cognitoObj.attributes.email);
+				alinda.userEmail = userEmail;
+				  alert("userEmail: " + userEmail)
+			  }
+
+
+			  //if get alinda doesn't exist add, otherwise update
+
+			   addAlinda();
+			  alert("after add alinda");
+			 
+			}
+
+			break;
+		  case "signOut":
 			setUser(null);
-		//	alert("NAV,  signOut: ");
+;
 			break;
-		  case 'signIn_failure':
-		  case 'cognitoHostedUI_failure':
-			console.log('Sign in failure', data);
-			alert("NAV,  cognitoHostedUI_failure: ");
-			break;
+		  case "customOAuthState":
+			
 		}
 	  });
   
-	  getUser().then(userData => setUser(userData));
+	//   Auth.currentAuthenticatedUser()
+	// 	.then(currentUser => setUser(currentUser))
+	// 	.catch(() => console.log("Not signed in"));
+
+	  return unsubscribe;
 	}, []);
-  
-	function getUser() {
-	  return Auth.currentAuthenticatedUser()
-		.then(userData => userData)
-		.catch(() => console.log('Not signed in'));
 
-
-	}
-
-
-		function hasGroupAdmin(groupName) {
-			alert("hasGroupAdmin");
-			alert("has group: " + groupName);
-			return groupName;
-		  }
-
-
-	// useEffect(() => {
-	// 	authListener();
-	// }, [])
-	// let loginLogOut = "cha"
-
-	// if(true){
-	// 	loginLogOut = <Link to='/logout' style={{ float: 'right' }} >NoName Logout</Link>
-	// } else {
-	// 	loginLogOut = <Link to='/login' style={{float:'right'}} >Login</Link>
-	// }
-
-
-	// Hub.listen('auth', (data) => {
-	// 	switch (data.payload.event) {
-	// 	  case 'signIn':
-	// 		  alert('user signed in');
-	// 		  break;
-	// 	  case 'signUp':
-	// 		alert('user signed up');
-	// 		  break;
-	// 	  case 'signOut':
-	// 		alert('user signed out');
-	// 		  break;
-	// 	  case 'signIn_failure':
-	// 		alert('user sign in failed');
-	// 		  break;
-	// 	  case 'configured':
-	// 		alert('the Auth module is configured');
-	// 	}
-	//   });
-
-
-
-	// onAuthEvent(payload) {
-    //     // ... your implementation
-	// 	alert("cha: " + JSON.stringify( payload.data))
-    // }
-
-
-
-	// async function signOut() {
-	// 	try {
-	// 		await Auth.signOut();
-	// 	} catch (error) {
-	// 		console.log('error signing out: ', error);
-	// 	}
-	// }
-
-	// async function authListener() {
-
-	// 	Hub.listen("auth", (data) => {
-
-
-	// 		switch(data.payload.event){
-	// 			case "signIn":
-	// 				alert("signIn")
-	// 				alert('A new auth event has happened: ', data.payload.data.username + ' has ' + data.payload.event);
-	// 				return setSignedUser(true)
-	// 			case "signOut":
-	// 				alert("signOut")
-	// 				alert('A new auth event has happened: ', data.payload.data.username + ' has ' + data.payload.event);
-	// 				return setSignedUser(false)
-	// 			default:
-           
-	// 				alert('A new auth event has happened: ', data.payload.data.username + ' has ' + data.payload.event);
-	// 				return undefined
-
-	// 		}
-	// 	})
-
-	// 	try{
-	// 		const authCogUser = await Auth.currentAuthenticatedUser()
-			
-	// 		alert("cha: " + JSON.stringify(authCogUser))
-	// 		console.log("Auth.currentAuthenticatedUser: " + JSON.stringify(authCogUser))
-	// 		setSignedUser(true)
-			
-	// 	}catch (err) {}
-	// }
 
 
 
@@ -179,11 +169,6 @@ return(
 		<Link to='/blogs'> blogs</Link>
 		<Link to='/sign-up'> Log-Out</Link>
 		<span style={{marginRight: "5px"}}>Welcome <b>{user ? user.attributes.email + " - " + user.username: null}</b></span>
-            {userGroups &&
-            userGroups.filter((f) => f.indexOf("Admins") > -1).length >
-              0 ? ( 
-				<Link to='/about'> group: {hasGroupAdmin(userGroups)}</Link>
-            ) : null}
 
           </>
         ) : (

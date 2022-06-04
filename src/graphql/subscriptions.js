@@ -20,6 +20,7 @@ export const onCreateAlinda = /* GraphQL */ `
       number_of_logins
       userEmail
       userName
+      phoneNumber
       createdAt
       updatedAt
     }
@@ -44,6 +45,7 @@ export const onUpdateAlinda = /* GraphQL */ `
       number_of_logins
       userEmail
       userName
+      phoneNumber
       createdAt
       updatedAt
     }
@@ -68,6 +70,7 @@ export const onDeleteAlinda = /* GraphQL */ `
       number_of_logins
       userEmail
       userName
+      phoneNumber
       createdAt
       updatedAt
     }
