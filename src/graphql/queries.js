@@ -20,7 +20,7 @@ export const getAlinda = /* GraphQL */ `
       number_of_logins
       userEmail
       userName
-      phoneNumber
+      email_verified
       createdAt
       updatedAt
     }
@@ -60,7 +60,7 @@ export const listAlindas = /* GraphQL */ `
         number_of_logins
         userEmail
         userName
-        phoneNumber
+        email_verified
         createdAt
         updatedAt
       }
@@ -102,7 +102,7 @@ export const qGSI_1 = /* GraphQL */ `
         number_of_logins
         userEmail
         userName
-        phoneNumber
+        email_verified
         createdAt
         updatedAt
       }
@@ -144,7 +144,7 @@ export const qGSI_2 = /* GraphQL */ `
         number_of_logins
         userEmail
         userName
-        phoneNumber
+        email_verified
         createdAt
         updatedAt
       }
@@ -186,7 +186,7 @@ export const qGSI_3 = /* GraphQL */ `
         number_of_logins
         userEmail
         userName
-        phoneNumber
+        email_verified
         createdAt
         updatedAt
       }
@@ -228,7 +228,7 @@ export const qGSI_4 = /* GraphQL */ `
         number_of_logins
         userEmail
         userName
-        phoneNumber
+        email_verified
         createdAt
         updatedAt
       }

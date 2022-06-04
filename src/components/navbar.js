@@ -6,8 +6,6 @@ import { createAlinda } from '../graphql/mutations'
 import { listAlindas } from '../graphql/queries'
 
 import awsExports from "../aws-exports";
-import { Authenticator } from '@aws-amplify/ui-react';
-
 
 
 // https://www.sufle.io/blog/aws-amplify-authentication-part-2
@@ -22,11 +20,10 @@ Amplify.configure(awsExports);
 // NavBtnLink,
 // } from './NavbarElements';
 
-const initialState = { T_PK: '', T_SK: '', userName: '', userEmail: '',  isAdmin: false }
-let alinda = { T_PK: '', T_SK: '', userName: '', userEmail: '',  isAdmin: false }
-let isAdmin = false;
-let userName = "";
-let userEmail = "";
+const initialState = { T_PK: '', T_SK: '', userName: '', userEmail: '', isAdmin: false, email_verified: '' }
+//This is so I can update the user from the event to the database without waiting for a state change
+let alinda = { T_PK: '', T_SK: '', userName: '', userEmail: '', isAdmin: false, email_verified: '' }
+
 
 
 const Navbar = () => {
@@ -52,8 +49,11 @@ const Navbar = () => {
 	
 	  async function addAlinda() {
 		try {
+
+			alert("addAlinda: " + JSON.stringify(alinda))
+			alert("addAlinda2: " + JSON.stringify(userState))
 		 // if (!userState.T_PK || !userState.T_SK) return
-	if(alinda && alinda.T_PK && alinda.T_SK) {
+		if(alinda && alinda.T_PK && alinda.T_SK) {
 		//   setInput('userName', userState.T_SK)
 		//   userState.userName = userState.T_SK;
 		 // const alinda = { ...userState }
@@ -82,6 +82,7 @@ const Navbar = () => {
 
   
 	useEffect(() => {
+
 	  const unsubscribe = Hub.listen("auth", ({ payload: { event, data } }) => {
 		switch (event) {
 		  case "signIn":
@@ -89,40 +90,41 @@ const Navbar = () => {
 
 			if(data){
 			  var cognitoObj = JSON.parse( JSON.stringify(data));
-
+				console.log("The Cog jwtToken: " + cognitoObj.signInUserSession.accessToken.jwtToken);
 
 			  setInput('T_PK', "USER");
 			  alinda.T_PK = "USER";
 
 			  if(cognitoObj.username){
-				userName = cognitoObj.username;
+			
 				setInput('T_SK', "USER#" + cognitoObj.username);
 				setInput('userName', "USER#" + cognitoObj.username);
 				
 				alinda.T_SK = "USER#" + cognitoObj.username;
-				alinda.userName = userName;
-				  alert("alinda.T_SK: " + alinda.T_SK)
+				alinda.userName = cognitoObj.username;
+		
 			  }
+			  	
 
-
-
-			  if(cognitoObj.signInUserSession.accessToken.payload["cognito:groups"].filter(x => x === 'Admins')){
-				isAdmin = true;
+				const grpArray =  [] || cognitoObj.signInUserSession.accessToken.payload["cognito:groups"];
+			  	const adminGroup = grpArray ? grpArray.filter(x => x === 'Admins') : []
+				  alert("adminGroup: " + JSON.stringify(adminGroup))
+			  if(adminGroup.length > 0){
 				setInput('isAdmin', true);
 				alinda.isAdmin = true;
-				alert("NAV: is admin: " + isAdmin)
-			  }
-
-
-			  //const groups = cognitoObj.signInUserSession.accessToken.payload["cognito:groups"];
+			  } 
+			
 
 			  if(cognitoObj.attributes.email){
-				userEmail = cognitoObj.attributes.email;
 				setInput('userEmail', cognitoObj.attributes.email);
-				alinda.userEmail = userEmail;
-				  alert("userEmail: " + userEmail)
+				alinda.userEmail = cognitoObj.attributes.email;
+		
 			  }
-
+			  if(cognitoObj.attributes.email_verified){
+				setInput('email_verified', cognitoObj.attributes.email_verified);
+				alinda.email_verified = cognitoObj.attributes.email_verified;
+		
+			  }
 
 			  //if get alinda doesn't exist add, otherwise update
 

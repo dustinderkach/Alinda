@@ -18,7 +18,7 @@
     }
   },
   "auth": {
-    "alindae87c3c73": {
+    "alinda40c90dfe": {
       "service": "Cognito",
       "providerPlugin": "awscloudformation",
       "dependsOn": [],
@@ -27,8 +27,7 @@
         "socialProviders": [],
         "usernameAttributes": [],
         "signupAttributes": [
-          "EMAIL",
-          "NAME"
+          "EMAIL"
         ],
         "passwordProtectionSettings": {
           "passwordPolicyMinLength": 8,

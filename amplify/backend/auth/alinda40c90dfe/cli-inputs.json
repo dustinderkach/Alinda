@@ -1,10 +1,10 @@
 {
   "version": "1",
   "cognitoConfig": {
-    "identityPoolName": "alindae87c3c73_identitypool_e87c3c73",
+    "identityPoolName": "alinda40c90dfe_identitypool_40c90dfe",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "alindae87c3c73",
-    "userPoolName": "alindae87c3c73_userpool_e87c3c73",
+    "resourceNameTruncated": "alinda40c90dfe",
+    "userPoolName": "alinda40c90dfe_userpool_40c90dfe",
     "autoVerifiedAttributes": [
       "email"
     ],
@@ -20,8 +20,7 @@
     "passwordPolicyMinLength": 8,
     "passwordPolicyCharacters": [],
     "requiredAttributes": [
-      "email",
-      "name"
+      "email"
     ],
     "aliasAttributes": [],
     "userpoolClientGenerateSecret": false,
@@ -32,10 +31,10 @@
     "userpoolClientReadAttributes": [
       "email"
     ],
-    "userpoolClientLambdaRole": "alindae87c3c73_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "alinda40c90dfe_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "e87c3c73",
-    "resourceName": "alindae87c3c73",
+    "sharedId": "40c90dfe",
+    "resourceName": "alinda40c90dfe",
     "authSelections": "identityPoolAndUserPool",
     "useDefault": "default",
     "triggers": {},
