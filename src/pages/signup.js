@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import  {Amplify, API, graphqlOperation } from 'aws-amplify'
 import { createAlinda } from '../graphql/mutations'
 import { listAlindas } from '../graphql/queries'
+import {  Link} from 'react-router-dom';
 
 import awsExports from "../aws-exports";
 import {Auth, Hub} from 'aws-amplify'
@@ -30,17 +31,15 @@ const SignUp = () => {
   const [formState, setFormState] = useState(initialState)
   const [alindas, setAlindas] = useState([])
 
-	const [signedUser, setSignedUser] = useState(false);
-  const [updateUser, setUpdateUserr] = useState(false);
-	const [userAtts, setuserAtts] = useState({});
-	useEffect(() => {
-		authListener();
-	}, [])
+	// const [signedUser, setSignedUser] = useState(false);
+  // const [updateUser, setUpdateUserr] = useState(false);
+	// const [userAtts, setuserAtts] = useState({});
+	// useEffect(() => {
+	// 	authListener();
+	// }, [])
 
 
-  useEffect(() => {
-    fetchAlindas()
-  }, [])
+
 
 	async function signOut() {
 		try {
@@ -81,43 +80,80 @@ const SignUp = () => {
     }
   }
 
-	async function authListener() {
-
-		Hub.listen("auth", (data) => {
 
 
-			switch(data.payload.event){
-				case "signIn":
-					alert("signIn: " + updateUser)
-					// alert('A new auth event has happened: ', data.payload.data.username + ' has ' + data.payload.event);
+	
+  function getUser() {
+    return Auth.currentAuthenticatedUser()
+      .then(userData => userData)
+      .catch(() => console.log('Not signed in'));
+  }
 
-					return setUpdateUserr(true)
-				case "signOut":
-					alert("signOut")
 
-					return setUpdateUserr(false)
-				default:
-   					return undefined
+		function hasGroupAdmin(groupName) {
+			alert("chacha");
+			alert("has group: " + groupName);
+			return groupName;
+		  }
 
-			}
-		})
+    //   {userGroups &&
+    //     userGroups.filter((f) => f.indexOf("Admins") > -1).length >
+    //       0 ? ( 
+    // <Link to='/about'> group: {hasGroupAdmin(userGroups)}</Link>
+    //     ) : null}
+    function getGroup() {
 
-		try{
-      if(updateUser) {
-        const authCogUser = await Auth.currentAuthenticatedUser()
-			
-        alert("cha: " + JSON.stringify(authCogUser))
-        console.log("Auth.currentAuthenticatedUser: " + JSON.stringify(authCogUser))
-        setSignedUser(true)
-      } else {
-        alert("cha: ");
-        await Auth.currentAuthenticatedUser()
-        setSignedUser(true)
+      if(userGroups && userGroups.filter((f) => f.indexOf("Admins") > -1).length){
+        alert("userGroups: " + JSON.stringify( userGroups))
       }
 
-			
-		}catch (err) {}
-	}
+      return Auth.currentAuthenticatedUser()
+        .then(userData => userData)
+        .catch(() => console.log('Not signed in'));
+    }
+
+      const [user, setUser] = useState(null);
+      const [customState, setCustomState] = useState(null);
+      const [userGroups, setUserGroups] = useState(null);
+    
+      useEffect(() => {
+        const unsubscribe = Hub.listen("auth", ({ payload: { event, data } }) => {
+          switch (event) {
+            case "signIn":
+              setUser(data);
+
+              if(data){
+                var cog = JSON.parse( JSON.stringify(data));
+
+                const groups = cog.signInUserSession.accessToken.payload["cognito:groups"];
+
+                var isAdmin = false;
+
+                if(cog.signInUserSession.accessToken.payload["cognito:groups"].filter(x => x === 'Admins')){
+                  isAdmin = true;
+                }
+
+                alert("SIG: is admin: " + isAdmin)
+              }
+
+              break;
+            case "signOut":
+              setUser(null);
+;
+              break;
+            case "customOAuthState":
+              setCustomState(data);
+          }
+        });
+    
+        Auth.currentAuthenticatedUser()
+          .then(currentUser => setUser(currentUser))
+          .catch(() => console.log("Not signed in"));
+
+        return unsubscribe;
+      }, []);
+
+
 
 
 
@@ -128,7 +164,13 @@ const SignUp = () => {
     {({ signOut, user }) => (
     <div style={styles.container}>
       <h2>Amplify Alindas</h2>
-      <button onClick={signOut}>signOut</button>
+      <button onClick={signOut}>signOut</button><br/>
+      <h4>		<span style={{marginRight: "5px"}}>Welcome <b>{user ? user.attributes.email + " - " + user.username: null}</b></span>
+            {userGroups &&
+            userGroups.filter((f) => f.indexOf("Admins") > -1).length >
+              0 ? ( 
+				<Link to='/about'> group: {hasGroupAdmin(userGroups)}</Link>
+            ) : null}</h4>
       <input
         onChange={event => setInput('T_PK', event.target.value)}
         style={styles.input}

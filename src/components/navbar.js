@@ -3,7 +3,7 @@ import {  Link} from 'react-router-dom';
 import {Auth, Hub} from 'aws-amplify'
 
 
-import awsExports from "../../aws-exports";
+import awsExports from "../aws-exports";
 import { Authenticator } from '@aws-amplify/ui-react';
 import {Amplify} from 'aws-amplify'
 
@@ -24,48 +24,59 @@ const initialState = { Username: '', phone_number: '', email: '', userEmail: '' 
 
 const Navbar = () => {
 
-
+	const [userGroups, setUserGroups] = useState(null);
 
 	const [user, setUser] = useState(null);
-	const [userGroups, setUserGroups] = useState(null);
+
+
 
 
 	useEffect(() => {
-		Hub.listen("auth", ({ payload: { event, data } }) => {
-		  switch (event) {
-			case "signIn":
-			  getUser().then((userData) => setUser(userData));
-			  break;
-			case "signOut":
-			  setUser(null);
-			  setUserGroups(null);
-			  break;
-			case "signIn_failure":
-			  console.log("Sign in failure", data);
-			  break;
-		  }
-		});
+	  Hub.listen('auth', ({ payload: { event, data } }) => {
+		switch (event) {
+		  case 'signIn':
+			if(data){
+                var cog = JSON.parse( JSON.stringify(data));
+                const groups = cog.signInUserSession.accessToken.payload["cognito:groups"];
 
-		getUser().then((userData) => {
-			setUser(userData);
-			if (userData) {
-			  setUserGroups(
-				userData.signInUserSession.accessToken.payload["cognito:groups"]
-			  );
-			} else {
-			  setUserGroups(null);
-			}
-		  });
-		}, []);
-	  
-		function getUser() {
-		  return Auth.currentAuthenticatedUser()
-			.then((userData) => userData)
-			.catch(() => console.log("Not signed in"));
+                var isAdmin = false;
+
+                if(cog.signInUserSession.accessToken.payload["cognito:groups"].filter(x => x === 'Admins')){
+                  isAdmin = true;
+                }
+
+                alert("NAV: is admin: " + isAdmin)
+              }
+
+		  case 'signOut':
+			setUser(null);
+		//	alert("NAV,  signOut: ");
+			break;
+		  case 'signIn_failure':
+		  case 'cognitoHostedUI_failure':
+			console.log('Sign in failure', data);
+			alert("NAV,  cognitoHostedUI_failure: ");
+			break;
 		}
+	  });
+  
+	  getUser().then(userData => setUser(userData));
+	}, []);
+  
+	function getUser() {
+	  return Auth.currentAuthenticatedUser()
+		.then(userData => userData)
+		.catch(() => console.log('Not signed in'));
 
 
+	}
 
+
+		function hasGroupAdmin(groupName) {
+			alert("hasGroupAdmin");
+			alert("has group: " + groupName);
+			return groupName;
+		  }
 
 
 	// useEffect(() => {
@@ -159,14 +170,21 @@ return(
       <div className='navbar'>
         {user ? (
           <>
-            <span style={{marginRight: "5px"}}>Welcome <b>{user ? user.attributes.email + " - " + user.username: null}</b></span>
+
+            <Link to='events'> events</Link>
+			<Link to='/about'> About</Link>
+		<Link to='events'> events</Link>
+		<Link to='/team'> team</Link>
+		<Link to='/annual'> annual</Link>
+		<Link to='/blogs'> blogs</Link>
+		<Link to='/sign-up'> Log-Out</Link>
+		<span style={{marginRight: "5px"}}>Welcome <b>{user ? user.attributes.email + " - " + user.username: null}</b></span>
             {userGroups &&
             userGroups.filter((f) => f.indexOf("Admins") > -1).length >
-              0 ? (
-				<Link to='/about'> About</Link>
+              0 ? ( 
+				<Link to='/about'> group: {hasGroupAdmin(userGroups)}</Link>
             ) : null}
-            <Link to='events'> events</Link>
-            <button onClick={() => Auth.signOut()}>Sign Out</button>
+
           </>
         ) : (
           <>
@@ -175,7 +193,7 @@ return(
 		<Link to='/team'> team</Link>
 		<Link to='/annual'> annual</Link>
 		<Link to='/blogs'> blogs</Link>
-		<Link to='/sign-up'> signed-In</Link>
+		<Link to='/sign-up'> Log-In</Link>
           </>
         )}
 </div>
