@@ -22,7 +22,7 @@ Amplify.configure(awsExports);
 
 const initialState = { T_PK: '', T_SK: '', userName: '', userEmail: '', isAdmin: false, email_verified: '' }
 //This is so I can update the user from the event to the database without waiting for a state change
-let alinda = { T_PK: '', T_SK: '', userName: '', userEmail: '', isAdmin: false, email_verified: '' }
+let userVar = initialState
 
 
 
@@ -30,14 +30,9 @@ const Navbar = () => {
 
 
 	const [user, setUser] = useState(null);
-	const [userState, setFormState] = useState(initialState)
-	const [alindas, setAlindas] = useState([])
 
-
-	function setInput(key, value) {
-		setFormState({ ...userState, [key]: value })
-	  }
-	
+	//not to user here
+	const [alindasUsers, setAlindas] = useState([])	
 	  async function fetchAlindas() {
 		try {
 		  const alindaData = await API.graphql(graphqlOperation(listAlindas))
@@ -47,23 +42,14 @@ const Navbar = () => {
 	  }
 	
 	
-	  async function addAlinda() {
+	  async function updateUserDB() {
 		try {
 
-			alert("addAlinda: " + JSON.stringify(alinda))
-			alert("addAlinda2: " + JSON.stringify(userState))
-		 // if (!userState.T_PK || !userState.T_SK) return
-		if(alinda && alinda.T_PK && alinda.T_SK) {
-		//   setInput('userName', userState.T_SK)
-		//   userState.userName = userState.T_SK;
-		 // const alinda = { ...userState }
-		  alert("stri: " + JSON.stringify(alinda));
-		//   setAlindas([...alindas, alinda])
-		//   setFormState(initialState)
+			alert("addAlinda: " + JSON.stringify(userVar))
+
+		if(userVar && userVar.T_PK && userVar.T_SK) {
 	
-		//   alert(JSON.stringify(alinda));
-	
-		  await API.graphql(graphqlOperation(createAlinda, {input: alinda}))
+		  await API.graphql(graphqlOperation(createAlinda, {input: userVar}))
 	}
 		} catch (err) {
 		  console.log('error creating alinda:', err)
@@ -86,49 +72,40 @@ const Navbar = () => {
 	  const unsubscribe = Hub.listen("auth", ({ payload: { event, data } }) => {
 		switch (event) {
 		  case "signIn":
-			setUser(data);
 
 			if(data){
 			  var cognitoObj = JSON.parse( JSON.stringify(data));
-				console.log("The Cog jwtToken: " + cognitoObj.signInUserSession.accessToken.jwtToken);
-
-			  setInput('T_PK', "USER");
-			  alinda.T_PK = "USER";
-
-			  if(cognitoObj.username){
-			
-				setInput('T_SK', "USER#" + cognitoObj.username);
-				setInput('userName', "USER#" + cognitoObj.username);
+				//console.log("The Cog jwtToken: " + cognitoObj.signInUserSession.accessToken.jwtToken);
 				
-				alinda.T_SK = "USER#" + cognitoObj.username;
-				alinda.userName = cognitoObj.username;
+			  userVar.T_PK = "USER";
+			  if(cognitoObj.username){
+		
+				userVar.T_SK = "USER#" + cognitoObj.username;
+				userVar.userName = cognitoObj.username;
 		
 			  }
 			  	
 
 				const grpArray =  [] || cognitoObj.signInUserSession.accessToken.payload["cognito:groups"];
 			  	const adminGroup = grpArray ? grpArray.filter(x => x === 'Admins') : []
-				  alert("adminGroup: " + JSON.stringify(adminGroup))
+
 			  if(adminGroup.length > 0){
-				setInput('isAdmin', true);
-				alinda.isAdmin = true;
+				userVar.isAdmin = true;
 			  } 
 			
 
 			  if(cognitoObj.attributes.email){
-				setInput('userEmail', cognitoObj.attributes.email);
-				alinda.userEmail = cognitoObj.attributes.email;
+				userVar.userEmail = cognitoObj.attributes.email;
 		
 			  }
 			  if(cognitoObj.attributes.email_verified){
-				setInput('email_verified', cognitoObj.attributes.email_verified);
-				alinda.email_verified = cognitoObj.attributes.email_verified;
+				userVar.email_verified = cognitoObj.attributes.email_verified;
 		
 			  }
 
 			  //if get alinda doesn't exist add, otherwise update
-
-			   addAlinda();
+			  setUser(userVar);
+			   updateUserDB();
 			  alert("after add alinda");
 			 
 			}
@@ -170,7 +147,7 @@ return(
 		<Link to='/annual'> annual</Link>
 		<Link to='/blogs'> blogs</Link>
 		<Link to='/sign-up'> Log-Out</Link>
-		<span style={{marginRight: "5px"}}>Welcome <b>{user ? user.attributes.email + " - " + user.username: null}</b></span>
+		<span style={{marginRight: "5px"}}>Welcome <b>{user ? user.userEmail + " - " + user.userName: null}</b></span>
 
           </>
         ) : (
